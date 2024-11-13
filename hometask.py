@@ -23,6 +23,7 @@ pygame.display.set_caption("Survival Game")
 # Шрифт для отображения текста
 font = pygame.font.SysFont(None, 48)
 
+
 # Класс игрока
 class Player:
     def __init__(self):
@@ -37,6 +38,7 @@ class Player:
     def draw(self):
         screen.blit(player_image, self.rect)
 
+
 # Класс врага
 class Enemy:
     def __init__(self):
@@ -46,19 +48,17 @@ class Enemy:
         self.speed = random.randint(2, 4)
         self.direction_x = random.choice([-1, 1])
         self.direction_y = random.choice([-1, 1])
-        self.change_direction_timer = random.randint(30, 90)  # Случайное время до смены направления
+        self.change_direction_timer = random.randint(30, 90)
 
     def move(self):
         self.rect.x += self.direction_x * self.speed
         self.rect.y += self.direction_y * self.speed
 
-        # Проверка границ экрана и смена направления
         if self.rect.left <= 0 or self.rect.right >= WIDTH:
             self.direction_x *= -1
         if self.rect.top <= 0 or self.rect.bottom >= HEIGHT:
             self.direction_y *= -1
 
-        # Изменение направления через случайные промежутки времени
         self.change_direction_timer -= 1
         if self.change_direction_timer <= 0:
             self.direction_x = random.choice([-1, 1])
@@ -68,14 +68,14 @@ class Enemy:
     def draw(self):
         screen.blit(enemy_image, self.rect)
 
-# Функция для отображения текста на экране
+
 def draw_text(text, font, color, surface, x, y):
     textobj = font.render(text, True, color)
     textrect = textobj.get_rect()
     textrect.topleft = (x, y)
     surface.blit(textobj, textrect)
 
-# Функция для отображения стартового экрана
+
 def show_start_screen():
     while True:
         screen.fill(BACKGROUND_COLOR)
@@ -91,37 +91,25 @@ def show_start_screen():
                 if event.key == pygame.K_SPACE:
                     return  # Начать игру
 
-# Функция для отображения экрана окончания игры
+
 def show_game_over_screen(score):
-    while True:
-        screen.fill(BACKGROUND_COLOR)
-        draw_text(f"Game Over! Your score: {int(score)}", font, (255, 255, 255), screen, WIDTH / 4, HEIGHT / 3)
-        draw_text("Press R to Restart or Q to Quit", font, (255, 255, 255), screen, WIDTH / 4 - 50, HEIGHT / 2)
-        pygame.display.flip()
+    screen.fill(BACKGROUND_COLOR)
+    draw_text(f"Game Over! Your score: {int(score)}", font, (255, 255, 255), screen, WIDTH / 4, HEIGHT / 3)
+    pygame.display.flip()
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_r:
-                    return True  # Перезапуск игры
-                if event.key == pygame.K_q:
-                    pygame.quit()
-                    sys.exit()
+    pygame.time.wait(2000)  # Задержка перед возвратом на стартовый экран
+    return  # Возврат на стартовый экран для перезапуска
 
-# Основная игровая логика
+
 def game():
     while True:
-        show_start_screen()  # Показываем стартовый экран
+        show_start_screen()
 
-        # Сброс параметров игрока и врагов
         player = Player()
         enemies = [Enemy() for _ in range(5)]
         score = 0  # Сброс счётчика перед каждой игрой
         clock = pygame.time.Clock()
 
-        # Основной игровой цикл
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -136,21 +124,21 @@ def game():
             screen.fill(BACKGROUND_COLOR)
             player.draw()
 
-            # Движение и отрисовка врагов
             for enemy in enemies:
                 enemy.move()
                 enemy.draw()
                 if player.rect.colliderect(enemy.rect):
-                    # Показ экрана окончания игры
-                    if show_game_over_screen(score):  # Если нажата R, перезапускаем игру
-                        break
-                    return  # Если нажата Q, выходим из игры
+                    show_game_over_screen(score)  # Показ экрана окончания игры
+                    break  # Выход из цикла игры после показа экрана окончания
+            else:
+                # Отображение счёта, если нет столкновения
+                score += 1 / FPS  # Увеличение счёта
+                draw_text(f"Score: {int(score)}", font, (255, 255, 255), screen, 40, 10)
+                pygame.display.flip()
+                clock.tick(FPS)
+                continue
 
-            # Отображение счёта
-            draw_text(f"Score: {int(score)}", font, (255, 255, 255), screen, 40, 10)
-            pygame.display.flip()
-            clock.tick(FPS)
-            score += 1 / FPS  # Увеличение счёта
+            break  # Выход из основного игрового цикла при окончании игры
 
-# Запуск игры
+
 game()
